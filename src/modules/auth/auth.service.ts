@@ -6,16 +6,23 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Document, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Response as Res } from 'express';
+import { Response as Res, Request as Req } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
 import { User } from '../../models/user.schema';
 import { Students } from '../../models/student.schema';
-import { SALT_ROUNDS, FROM_VERIFY_EMAIL } from '../../constants';
-import { RegisterDto, LoginDto, VerifyEmailDto } from './dto/index.dto';
+import { SALT_ROUNDS, FROM_VERIFY_EMAIL, Role } from '../../constants';
+import {
+  RegisterDto,
+  LoginDto,
+  VerifyEmailDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ResetStudentPasswordDto,
+} from './dto/index.dto';
 import { addHours } from '../../utils';
 import Stripe from 'stripe';
 import configs from '../../config';
@@ -298,5 +305,178 @@ export class AuthService {
     }
 
     return username;
+  }
+
+  async forgotPassword({ email }: ForgotPasswordDto, res: Res) {
+    try {
+      let user;
+      user = await this.userModel.findOne({
+        email,
+        role: Role.PARENT,
+      });
+
+      if (!user) {
+        user = await this.studentsModel.findOne({ email });
+        if (!user) {
+          throw new NotFoundException('User not found!');
+        }
+      }
+
+      const authToken = this.jwtService.sign({ _id: user._id });
+
+      // reset password mail service
+      this._sendMail(
+        FROM_VERIFY_EMAIL,
+        user.email,
+        'Forget Password',
+        `Here is reset password link ${
+          configs().FRONTEND_APP_URL
+        }/reset-password?token=${authToken}`,
+      );
+
+      return res.json({
+        success: true,
+        message: 'Check your email to recover password!',
+      });
+    } catch (error) {
+      throw new BadRequestException({ success: false, message: error.message });
+    }
+  }
+
+  async resetPassword(body: ResetPasswordDto, uid: string, req: Req, res: Res) {
+    try {
+      const { newPassword, confirmPassword } = body;
+
+      let userData;
+      //@ts-ignore
+      const role = req?.user.roles;
+
+      console.log('role', role);
+
+      if (Role.PARENT === role) {
+        userData = await this.userModel.findOne({ _id: uid });
+      } else {
+        userData = await this.studentsModel.findOne({ _id: uid });
+      }
+
+      // sending error if user not found
+      if (!userData) {
+        throw new NotFoundException({
+          success: false,
+          message: 'User Not Found!',
+        });
+      }
+
+      if (newPassword !== confirmPassword) {
+        throw new ConflictException({
+          success: false,
+          message: "Both password doesn't match",
+        });
+      }
+
+      // creating new password and storing in user's  document
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+      if (Role.PARENT === role) {
+        await this.userModel.findOneAndUpdate(
+          { _id: uid },
+          {
+            password: hashedPassword,
+          },
+        );
+      } else {
+        await this.studentsModel.findOneAndUpdate(
+          { _id: uid },
+          {
+            password: hashedPassword,
+          },
+        );
+      }
+
+      this._sendMail(
+        FROM_VERIFY_EMAIL,
+        userData.email,
+        'Reset Password',
+        'Password reset successfully!',
+      );
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully!',
+      });
+    } catch (error) {
+      throw new BadRequestException({ success: false, message: error.message });
+    }
+  }
+
+  async resetStudentPassword(
+    body: ResetStudentPasswordDto,
+    uid: string,
+    res: Res,
+  ) {
+    try {
+      const { currentPassword, newPassword, userId } = body;
+
+      let user;
+      //@ts-ignore
+      const role = req?.user.roles;
+      // fetching user
+      if (role === Role.STUDENT) {
+        user = await this.studentsModel.findOne({ _id: userId });
+      } else {
+        user = await this.studentsModel.findOne({ _id: userId });
+      }
+
+      // sending error if user not found
+      if (!user) {
+        throw new NotFoundException({
+          success: false,
+          message: 'user not found!',
+        });
+      }
+
+      // validating current password
+      const checkPassword = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+
+      if (!checkPassword) {
+        throw new UnauthorizedException({
+          success: false,
+          message: 'Password is incorrect!',
+        });
+      }
+
+      // creating new password and storing in user's  document
+      const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+      if (role === Role.STUDENT) {
+        await this.studentsModel.findOneAndUpdate(
+          { _id: userId },
+          {
+            password: hashedPassword,
+            tempPassword: newPassword,
+          },
+        );
+      } else {
+        await this.userModel.findOneAndUpdate(
+          { _id: userId },
+          {
+            password: hashedPassword,
+          },
+        );
+      }
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully!',
+      });
+    } catch (error) {
+      throw new BadRequestException({
+        success: false,
+        message: error.message,
+      });
+    }
   }
 }

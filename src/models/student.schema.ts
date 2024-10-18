@@ -36,11 +36,21 @@ export class Students {
   @Prop()
   city: string;
 
-  @Prop()
-  groupYear: string;
+  // @Prop()
+  // groupYear: string[];
 
-  @Prop()
-  subjects: string[];
+  @Prop({
+    type: [
+      {
+        groupYear: String,
+        subjects: [String],
+      },
+    ],
+  })
+  selectedGroupYears: {
+    groupYear: string;
+    subjects: string[];
+  }[];
 
   @Prop()
   daysPerWeek: number;
@@ -73,6 +83,9 @@ export class Students {
 
   @Prop({ type: Boolean, default: false })
   isSuperUser: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  enableNotification: boolean;
 }
 
 export const StudentsSchema = SchemaFactory.createForClass(Students);

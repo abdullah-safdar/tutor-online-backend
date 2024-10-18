@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class SelectedGroupYearsDto {
+  groupYear: string;
+  subjects: string[];
+}
 export class StudentDto {
   @ApiProperty()
   name: string;
@@ -14,10 +18,7 @@ export class StudentDto {
   city: string;
 
   @ApiProperty()
-  yearGroup: string;
-
-  @ApiProperty()
-  subjects: string[];
+  selectedGroupYears: SelectedGroupYearsDto[];
 
   @ApiProperty()
   daysPerWeek: number;
@@ -97,4 +98,8 @@ export class SessionSwapDto {
 
   @ApiProperty()
   swapSession: string;
+}
+
+export class UpdateProfileDto {
+  enableNotification: boolean;
 }

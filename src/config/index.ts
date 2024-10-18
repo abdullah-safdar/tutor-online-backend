@@ -5,4 +5,5 @@ export default () => ({
     SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     WEBHOOK_SECRET_KEY: process.env.STRIPE_WEBHOOK_SECRET_KEY,
   },
+  FRONTEND_APP_URL: process.env.FRONTEND_APP_URL,
 });

@@ -1,8 +1,15 @@
-import { Controller, Post, Body, Response, Get } from '@nestjs/common';
+import { Controller, Post, Body, Response, Get, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Response as Res } from 'express';
+import { Response as Res, Request as Req } from 'express';
 import { Uid } from '../../decorator/uid.decorator';
-import { RegisterDto, LoginDto, VerifyEmailDto } from './dto/index.dto';
+import {
+  RegisterDto,
+  LoginDto,
+  VerifyEmailDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+  ResetStudentPasswordDto,
+} from './dto/index.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -41,5 +48,32 @@ export class AuthController {
     @Response() res: Res,
   ): Promise<Res> {
     return this.authService.verifyEmail(uid, verifyEmailDto, res);
+  }
+
+  @Post('/forgot-password')
+  async forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+    @Response() res: Res,
+  ): Promise<Res> {
+    return this.authService.forgotPassword(forgotPasswordDto, res);
+  }
+
+  @Post('/reset-password')
+  async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @Uid() uid: string,
+    @Response() res: Res,
+    @Request() req: Req,
+  ) {
+    return this.authService.resetPassword(body, uid, req, res);
+  }
+
+  @Post('/reset-student-password')
+  async resetStudentPassword(
+    @Body() body: ResetStudentPasswordDto,
+    @Uid() uid: string,
+    @Response() res: Res,
+  ) {
+    return this.authService.resetStudentPassword(body, uid, res);
   }
 }

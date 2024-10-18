@@ -23,4 +23,11 @@ export class AttendanceController {
   async getSingleStudentAttendance(@Uid() uid: string, @Response() res: Res) {
     return this.attendanceService.getSingleStudentAttendance(uid, res);
   }
+
+  @Roles(Role.STUDENT)
+  @UseGuards(RolesGuard)
+  @Get('/mark-attendance')
+  async markStudentAttendance(@Uid() uid: string, @Response() res: Res) {
+    return this.attendanceService.markStudentAttendance(uid, res);
+  }
 }

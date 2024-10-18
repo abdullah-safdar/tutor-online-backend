@@ -15,6 +15,7 @@ import {
   AddComplaintDto,
   StudentDto,
   SessionSwapDto,
+  UpdateProfileDto,
 } from './dto/index.dto';
 
 import { RolesGuard } from '../../guard/roles.guard';
@@ -93,5 +94,12 @@ export class UserController {
   @Get('/session-swaps')
   async getSessionSwapRequest(@Uid() uid: string) {
     return this.userService.getSessionSwapRequest(uid);
+  }
+
+  @Roles(Role.STUDENT)
+  @UseGuards(RolesGuard)
+  @Post('/update-profile')
+  async updateProfile(@Uid() uid: string, @Body() body: UpdateProfileDto) {
+    return this.userService.updateProfile(uid, body);
   }
 }
