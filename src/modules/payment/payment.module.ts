@@ -11,6 +11,7 @@ import {
 } from '../../models/subscriptions.schema';
 import { Invoice, InvoiceSchema } from 'src/models/invoices.schema';
 import { Students, StudentsSchema } from 'src/models/student.schema';
+import { Group, GroupSchema } from 'src/models/group.schema';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Students, StudentsSchema } from 'src/models/student.schema';
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: Invoice.name, schema: InvoiceSchema },
       { name: Students.name, schema: StudentsSchema },
+      { name: Group.name, schema: GroupSchema },
     ]),
   ],
   controllers: [PaymentController],

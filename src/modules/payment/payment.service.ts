@@ -19,6 +19,7 @@ import { Subscription } from 'src/models/subscriptions.schema';
 import config from '../../config';
 import { Invoice } from 'src/models/invoices.schema';
 import { Students } from 'src/models/student.schema';
+import { Group } from 'src/models/group.schema';
 
 @Injectable()
 export class PaymentService {
@@ -37,6 +38,8 @@ export class PaymentService {
     private SubscriptionModel: Model<Subscription>,
     @InjectModel(Students.name)
     private StudentModel: Model<Students>,
+    @InjectModel(Group.name)
+    private groupModel: Model<Group>,
   ) {
     this.stripe = new Stripe(configs().STRIPE.SECRET_KEY, {
       apiVersion: '2024-06-20',
@@ -426,7 +429,8 @@ export class PaymentService {
   }
 
   async createSubscription(body: CreateSubscriptionDto, uid: string) {
-    const { prices, setupIntentId } = body;
+    const { prices, setupIntentId, isAppendToStudent, subjects, yearGroup } =
+      body;
 
     let user = await this.UserModel.findById(uid);
 
@@ -467,6 +471,9 @@ export class PaymentService {
           metadata: {
             uid: uid,
             studentId: price.studentId,
+            isAppendToStudent: isAppendToStudent ? 'yes' : 'no',
+            subjects: subjects ? JSON.stringify(subjects) : null,
+            yearGroup: yearGroup || null,
           },
         };
 
@@ -694,7 +701,46 @@ export class PaymentService {
         case 'invoice.paid':
           const data = event.data.object;
 
-          const { uid, studentId } = data.subscription_details.metadata;
+          const { uid, studentId, isAppendToStudent, yearGroup, subjects } =
+            data.subscription_details.metadata;
+
+          if (isAppendToStudent === 'yes') {
+            const _subjects = JSON.parse(subjects);
+            await this.StudentModel.findByIdAndUpdate(studentId, {
+              $push: {
+                yearGroups: {
+                  yearGroup: yearGroup,
+                  subjects: _subjects,
+                },
+              },
+            });
+
+            const members = [studentId];
+
+            if (uid !== studentId) {
+              members.push(uid);
+            }
+            await Promise.all(
+              _subjects.map(async (subject: string) => {
+                const group = await this.groupModel.create({
+                  members: members,
+                  subject,
+                  yearGroup: yearGroup,
+                });
+
+                await this.StudentModel.findOneAndUpdate(
+                  { _id: studentId },
+                  { $addToSet: { groupId: group._id } },
+                );
+
+                await this.UserModel.findOneAndUpdate(
+                  { _id: uid },
+
+                  { $addToSet: { groupId: group._id } },
+                );
+              }),
+            );
+          }
 
           const subscriptionId = data.subscription;
 

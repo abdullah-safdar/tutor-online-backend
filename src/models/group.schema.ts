@@ -7,6 +7,9 @@ export class Group extends Document {
   members: Types.ObjectId[];
 
   @Prop({ required: true })
+  yearGroup: string;
+
+  @Prop({ required: true })
   subject: string;
 
   @Prop({ default: Date.now })

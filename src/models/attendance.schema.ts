@@ -5,7 +5,7 @@ export type AttendanceDocument = HydratedDocument<Attendance>;
 
 @Schema({ timestamps: true })
 export class Attendance {
-  @Prop({ required: true })
+  @Prop({ required: true, default: Date.now() })
   dateTime: Date;
 
   @Prop({ default: false })

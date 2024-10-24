@@ -34,3 +34,27 @@ export class VerifyEmailDto {
   @ApiProperty()
   code: string;
 }
+
+export class ForgotPasswordDto {
+  @ApiProperty()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty()
+  newPassword: string;
+
+  @ApiProperty()
+  confirmPassword: string;
+}
+
+export class ResetStudentPasswordDto {
+  @ApiProperty()
+  userId: string;
+
+  @ApiProperty()
+  currentPassword: string;
+
+  @ApiProperty()
+  newPassword: string;
+}

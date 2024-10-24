@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { Role, EMAIL_REGEX } from '../constants';
 
 export type StudentsDocument = HydratedDocument<Students>;
 
@@ -12,16 +11,13 @@ export class Students {
   @Prop({ required: true, unique: true })
   username: string;
 
-  @Prop()
-  email: string;
+  @Prop({ type: String })
+  email?: string;
 
   @Prop({ type: String })
-  customerId: string;
+  customerId?: string;
 
-  @Prop({
-    required: true,
-  })
-  @Prop({ required: true })
+  @Prop({ type: String, required: true })
   password: string;
 
   @Prop()
@@ -36,11 +32,18 @@ export class Students {
   @Prop()
   city: string;
 
-  @Prop()
-  groupYear: string;
-
-  @Prop()
-  subjects: string[];
+  @Prop({
+    type: [
+      {
+        yearGroup: String,
+        subjects: [String],
+      },
+    ],
+  })
+  yearGroups: {
+    yearGroup: string;
+    subjects: string[];
+  }[];
 
   @Prop()
   daysPerWeek: number;
@@ -73,6 +76,9 @@ export class Students {
 
   @Prop({ type: Boolean, default: false })
   isSuperUser: boolean;
+
+  @Prop({ type: Boolean, default: false })
+  enableNotification: boolean;
 }
 
 export const StudentsSchema = SchemaFactory.createForClass(Students);

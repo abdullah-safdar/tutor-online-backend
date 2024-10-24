@@ -14,7 +14,7 @@ export class StudentDto {
   city: string;
 
   @ApiProperty()
-  groupYear: string;
+  yearGroup: string;
 
   @ApiProperty()
   subjects: string[];

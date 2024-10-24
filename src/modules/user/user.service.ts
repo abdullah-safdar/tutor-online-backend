@@ -16,6 +16,8 @@ import {
   AddStudentsDto,
   StudentDto,
   SessionSwapDto,
+  UpdateProfileDto,
+  AppendYearGroupSubjectsDto,
 } from './dto/index.dto';
 import { User } from '../../models/user.schema';
 import { SALT_ROUNDS } from '../../constants';
@@ -118,21 +120,26 @@ export class UserService {
         const _members = [_student._id, uid];
 
         await Promise.all(
-          student.subjects.map(async (subject) => {
-            const group = await this.groupModel.create({
-              members: _members,
-              subject,
-            });
+          student.yearGroups.map(async (data) => {
+            await Promise.all(
+              data.subjects.map(async (subject) => {
+                const group = await this.groupModel.create({
+                  members: _members,
+                  subject,
+                  yearGroup: data.yearGroup,
+                });
 
-            await this.studentsModel.findOneAndUpdate(
-              { _id: _student._id },
-              { $addToSet: { groupId: group._id } },
-            );
+                await this.studentsModel.findOneAndUpdate(
+                  { _id: _student._id },
+                  { $addToSet: { groupId: group._id } },
+                );
 
-            await this.userModel.findOneAndUpdate(
-              { _id: uid },
+                await this.userModel.findOneAndUpdate(
+                  { _id: uid },
 
-              { $addToSet: { groupId: group._id } },
+                  { $addToSet: { groupId: group._id } },
+                );
+              }),
             );
           }),
         );
@@ -250,10 +257,9 @@ export class UserService {
         dateOfBirth: body.dateOfBirth,
         country: body.country,
         city: body.city,
-        subjects: body.subjects,
+        yearGroups: body.yearGroups,
         daysPerWeek: body.daysPerWeek,
         freeSessions: body.freeSessions,
-        groupYear: body.yearGroup,
       });
 
       await Promise.all(
@@ -269,15 +275,20 @@ export class UserService {
       );
 
       await Promise.all(
-        body.subjects.map(async (subject) => {
-          const group = await this.groupModel.create({
-            members: [_student._id],
-            subject: subject,
-          });
+        body.yearGroups.map(async (data) => {
+          await Promise.all(
+            data.subjects.map(async (subject) => {
+              const group = await this.groupModel.create({
+                members: [_student._id],
+                subject: subject,
+                yearGroup: data.yearGroup,
+              });
 
-          await this.studentsModel.findOneAndUpdate(
-            { _id: _student._id },
-            { $addToSet: { groupId: group._id } },
+              await this.studentsModel.findOneAndUpdate(
+                { _id: _student._id },
+                { $addToSet: { groupId: group._id } },
+              );
+            }),
           );
         }),
       );
@@ -352,6 +363,60 @@ export class UserService {
       return {
         success: true,
         requests,
+      };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException({ message: error.message, success: false });
+    }
+  }
+
+  async updateProfile(uid: string, body: UpdateProfileDto) {
+    try {
+      await this.studentsModel.findOneAndUpdate(
+        { _id: uid },
+        { enableNotification: body.enableNotification },
+      );
+
+      return {
+        success: true,
+        message: 'profile updated successfully!',
+      };
+    } catch (error) {
+      console.log(error);
+      throw new BadRequestException({ message: error.message, success: false });
+    }
+  }
+
+  async appendYearGroupsSubjects(
+    body: AppendYearGroupSubjectsDto,
+    uid: string,
+  ) {
+    const { yearGroup, subjects, priceId, studentId, setupIntentId } = body;
+
+    try {
+      const student = await this.studentsModel.findById(studentId);
+
+      if (!student) {
+        throw new NotFoundException({
+          success: true,
+          message: 'Student not found',
+        });
+      }
+
+      await this.paymentService.createSubscription(
+        {
+          isAppendToStudent: true,
+          prices: [{ priceId, studentId, studentName: student.name }],
+          setupIntentId,
+          yearGroup,
+          subjects,
+        },
+        uid,
+      );
+
+      return {
+        success: true,
+        message: 'Added Year Group and Subjects successfully',
       };
     } catch (error) {
       console.log(error);

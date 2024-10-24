@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class YearGroups {
+  yearGroup: string;
+  subjects: string[];
+}
+
 export class StudentDto {
   @ApiProperty()
   name: string;
@@ -14,16 +19,10 @@ export class StudentDto {
   city: string;
 
   @ApiProperty()
-  yearGroup: string;
-
-  @ApiProperty()
-  subjects: string[];
+  yearGroups: YearGroups[];
 
   @ApiProperty()
   daysPerWeek: number;
-
-  // @ApiProperty()
-  // freeSessionDate: [string];
 
   @ApiProperty()
   priceId: string;
@@ -33,20 +32,6 @@ export class StudentDto {
 
   @ApiProperty()
   proceedToPayment: boolean;
-}
-
-class paymentDetailsDto {
-  @ApiProperty()
-  cardNumber: string;
-
-  @ApiProperty()
-  expirationDate: string;
-
-  @ApiProperty()
-  cvv: string;
-
-  @ApiProperty()
-  cardholderName: string;
 }
 
 class Prices {
@@ -97,4 +82,16 @@ export class SessionSwapDto {
 
   @ApiProperty()
   swapSession: string;
+}
+
+export class UpdateProfileDto {
+  enableNotification: boolean;
+}
+
+export class AppendYearGroupSubjectsDto {
+  yearGroup: string;
+  subjects: string[];
+  priceId: string;
+  studentId: string;
+  setupIntentId: string;
 }

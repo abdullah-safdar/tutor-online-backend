@@ -20,6 +20,15 @@ export class CreateSubscriptionDto {
 
   @ApiProperty()
   paymentMethodId?: string;
+
+  @ApiProperty()
+  isAppendToStudent: boolean;
+
+  @ApiProperty()
+  yearGroup?: string;
+
+  @ApiProperty()
+  subjects: string[];
 }
 
 export class AttachPaymentMethodToUserDto {
