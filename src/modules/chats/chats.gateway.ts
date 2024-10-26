@@ -103,4 +103,26 @@ export class ChatsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socket.emit('error', 'Failed to mark message as read');
     }
   }
+
+  @SubscribeMessage('sendFileMessage')
+  async handleSendFileMessage(
+    socket: Socket,
+    {
+      groupId,
+      messageId,
+    }: {
+      groupId: string;
+      messageId: string;
+    },
+  ) {
+    try {
+      const newMessage = await this.chatsService.getMessageWithFile(messageId);
+
+      // Notify all users in the group about the new file message
+      this.server.to(groupId).emit('newMessage', newMessage);
+    } catch (error) {
+      console.error(error);
+      socket.emit('error', error.message);
+    }
+  }
 }

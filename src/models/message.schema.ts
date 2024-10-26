@@ -25,6 +25,15 @@ export class Message extends Document {
 
   @Prop({ type: [Types.ObjectId], default: [] })
   readBy: Types.ObjectId[];
+
+  @Prop({ type: String, required: false })
+  fileUrl?: string;
+
+  @Prop({ type: String, required: false })
+  fileType?: string;
+
+  @Prop({ type: String, required: false })
+  fileName?: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);
