@@ -56,4 +56,31 @@ export class ChatsService {
       { new: true },
     );
   }
+
+  // Save a message that contains a file
+  async saveMessageWithFile(
+    groupId: string,
+    senderId: string,
+    senderRole: string,
+    username: string,
+    fileUrl: string,
+    fileType: string,
+    fileName: string,
+  ): Promise<Message> {
+    const newMessage = new this.messageModel({
+      groupId: new Types.ObjectId(groupId),
+      senderId: new Types.ObjectId(senderId),
+      senderRole,
+      username,
+      fileUrl,
+      fileType,
+      fileName,
+    });
+    return newMessage.save();
+  }
+
+  async getMessageWithFile(messageId: string): Promise<Message> {
+    const message = this.messageModel.findOne({ _id: messageId });
+    return message;
+  }
 }

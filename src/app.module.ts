@@ -60,6 +60,7 @@ export class AppModule {
         { path: '/admin/prices', method: RequestMethod.ALL },
         { path: '/payment/webhook', method: RequestMethod.POST },
         { path: '/sessions', method: RequestMethod.POST },
+        { path: '/chats/upload', method: RequestMethod.POST },
       )
       .forRoutes({ path: '/*', method: RequestMethod.ALL });
   }
