@@ -57,8 +57,9 @@ export class ChatsController {
     @Body('groupId') groupId: string,
     @Body('senderId') senderId: string,
     @Body('senderRole') senderRole: string,
+    @Body('username') username: string,
   ) {
-    const fileUrl = `http://localhost:3000/uploads/${file.filename}`; //
+    const fileUrl = `http://localhost:4000/uploads/${file.filename}`; //
     // const fileUrl = file.location;
 
     console.log(groupId, senderId, senderRole);
@@ -66,6 +67,7 @@ export class ChatsController {
       groupId,
       senderId,
       senderRole,
+      username,
       fileUrl,
       file.mimetype,
       file.originalname,

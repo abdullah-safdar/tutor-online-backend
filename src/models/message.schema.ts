@@ -17,7 +17,7 @@ export class Message extends Document {
   @Prop({ required: true })
   senderRole: string;
 
-  @Prop({ required: true })
+  @Prop({})
   message: string;
 
   @Prop({ default: Date.now })
