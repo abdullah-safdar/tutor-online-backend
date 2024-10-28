@@ -29,6 +29,7 @@ export class AuthMiddleware implements NestMiddleware {
       if (!token) {
         throw new BadRequestException({
           message: 'Please provide a valid token',
+          success: false,
         });
       }
 

@@ -265,6 +265,7 @@ export class AuthService {
   async forgotPassword({ email }: ForgotPasswordDto, res: Res) {
     try {
       let user;
+
       user = await this.userModel.findOne({
         email,
         role: Role.PARENT,
@@ -272,15 +273,16 @@ export class AuthService {
 
       if (!user) {
         user = await this.studentsModel.findOne({ email });
-        if (!user) {
-          throw new NotFoundException('User not found!');
-        }
+      }
+
+      if (!user) {
+        throw new NotFoundException('User not found!');
       }
 
       const authToken = this.jwtService.sign({ _id: user._id });
 
       // reset password mail service
-      this._sendMail(
+      await this._sendMail(
         FROM_VERIFY_EMAIL,
         user.email,
         'Forget Password',
